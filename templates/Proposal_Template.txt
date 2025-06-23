@@ -1,0 +1,53 @@
+Proposal for {{company.name}}
+
+Date: {{dates.startDate}}
+Proposal ID: {{id}}
+
+Contact Person: {{company.contactName}}
+Email: {{company.contactEmail}}
+Phone: {{company.contactPhone}}
+
+Address: {{company.address}}
+
+---
+
+## Engagement Type
+{{engagement.type}}
+
+## Engagement Details
+{{engagement.details}}
+
+## Services & Scope of Work
+
+{{#each scopes}}
+### Service: {{serviceType}}
+Description: {{description}}
+Deliverables: {{deliverables}}
+Timeline: {{timeline}}
+---
+{{/each}}
+
+## Financials
+
+Quoted Amount: {{financials.quotedAmount}} {{financials.currency}}
+Payment Terms: {{financials.paymentTerms}}
+
+## Compliance
+
+Compliance Requirements:
+{{#each compliance.requirements}}
+- {{this}}
+{{/each}}
+
+Additional Details:
+{{compliance.details}}
+
+## Project Dates
+Start Date: {{dates.startDate}}
+End Date: {{dates.endDate}}
+
+---
+
+Thank you for considering our proposal.
+
+Seccomply 

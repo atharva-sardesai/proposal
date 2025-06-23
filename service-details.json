@@ -1,0 +1,17 @@
+{
+  "VAPT": {
+    "description": "We recognize the importance of identifying and mitigating vulnerabilities...",
+    "targets": "Business-critical web applications...",
+    "testingApproach": "Blackbox and Greybox testing based on credentials shared...",
+    "focusAreas": "OWASP Top 10, business logic flaws, session management...",
+    "methodology": "Hybrid testing using Burp Suite, Nuclei...",
+    "deliverables": "...",
+    "outOfScope": "Physical sites, IoT, Vendor assessments"
+  },
+  "ISO27001": {
+    "description": "This engagement covers the full ISO 27001 implementation lifecycle...",
+    "targets": "Organizational units handling sensitive data...",
+    "deliverables": "Gap assessment report, risk register, SoA, ISMS documents...",
+    "outOfScope": "Actual implementation of technical controls"
+  }
+} 
