@@ -12,25 +12,27 @@ export default function Home() {
           Generate professional, branded proposals in minutes with our automated system.
         </p>
 
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 w-full max-w-5xl">
-          <Card>
-            <CardHeader className="space-y-1">
-              <CardTitle className="text-2xl">Create New Proposal</CardTitle>
-              <CardDescription>Generate a new proposal for a client</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex justify-center">
-                <FileText className="h-24 w-24 text-primary" />
-              </div>
-            </CardContent>
-            <CardFooter>
-              <Link href="/proposals/new" className="w-full">
-                <Button className="w-full">
-                  Get Started <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-              </Link>
-            </CardFooter>
-          </Card>
+        <div className="flex justify-center w-full max-w-5xl">
+          <div className="w-full max-w-md">
+            <Card>
+              <CardHeader className="space-y-1">
+                <CardTitle className="text-2xl">Create New Proposal</CardTitle>
+                <CardDescription>Generate a new proposal for a client</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex justify-center">
+                  <FileText className="h-24 w-24 text-primary" />
+                </div>
+              </CardContent>
+              <CardFooter>
+                <Link href="/proposals/new" className="w-full">
+                  <Button className="w-full">
+                    Get Started <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </Link>
+              </CardFooter>
+            </Card>
+          </div>
         </div>
       </div>
     </div>
