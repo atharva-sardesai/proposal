@@ -4,7 +4,7 @@ import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Settings, FileText, Users, PaintBucket, FileCheck } from "lucide-react"
 
-export default function AdminLayout({ children }) {
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
 
   const navItems = [
@@ -36,7 +36,7 @@ export default function AdminLayout({ children }) {
     },
   ]
 
-  const isActive = (item) => {
+  const isActive = (item: { href: string; exact?: boolean }) => {
     if (item.exact) {
       return pathname === item.href
     }
@@ -49,7 +49,7 @@ export default function AdminLayout({ children }) {
 
       <div className="grid grid-cols-1 md:grid-cols-[250px_1fr] gap-8">
         <div className="space-y-2">
-          {navItems.map((item) => (
+          {navItems.map((item: { title: string; href: string; icon: React.ReactNode; exact?: boolean }) => (
             <Button
               key={item.href}
               variant={isActive(item) ? "default" : "ghost"}

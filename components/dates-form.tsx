@@ -25,16 +25,25 @@ const formSchema = z
     path: ["endDate"],
   })
 
-export default function DatesForm({ data, updateData, onContinue }) {
-  const form = useForm({
+interface DatesFormProps {
+  data: { startDate: string; endDate: string } | null;
+  updateData: (data: { startDate: string, endDate: string }) => void;
+  onContinue: () => void;
+}
+
+export default function DatesForm({ data, updateData, onContinue }: DatesFormProps) {
+  const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      startDate: data?.startDate ? new Date(data.startDate) : undefined,
-      endDate: data?.endDate ? new Date(data.endDate) : undefined,
+    defaultValues: data ? {
+      startDate: new Date(data.startDate),
+      endDate: new Date(data.endDate),
+    } : {
+      startDate: undefined,
+      endDate: undefined,
     },
   })
 
-  function onSubmit(values) {
+  function onSubmit(values: z.infer<typeof formSchema>) {
     updateData({
       startDate: values.startDate.toISOString(),
       endDate: values.endDate.toISOString(),

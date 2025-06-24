@@ -4,8 +4,9 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Download } from "lucide-react"
 import { toast } from "@/hooks/use-toast"
+import { ProposalData } from "@/types/proposal"
 
-export default function ServerPDFButton({ data }) {
+export default function ServerPDFButton({ data }: { data: ProposalData }) {
   const [isGenerating, setIsGenerating] = useState(false)
 
   const handleGeneratePDF = async () => {

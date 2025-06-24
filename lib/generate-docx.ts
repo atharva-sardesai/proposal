@@ -1,71 +1,71 @@
 "use server"
 
-import { Document, Packer, Paragraph, TextRun, HeadingLevel, Table, TableRow, TableCell, WidthType, AlignmentType } from "docx";
+import fs from "fs/promises";
+import path from "path";
+import handlebars from "handlebars";
+import { ProposalData, Scope } from "../types/proposal";
+import htmlDocx from "html-docx-js";
 
-export async function generateDOCX(data: any) {
+interface ServiceDetails {
+  [key: string]: {
+    description: string;
+    deliverables: string[];
+    timeline: string;
+  };
+}
+
+export async function generateDOCX(data: ProposalData) {
   try {
-    const doc = new Document({
-      sections: [
-        {
-          properties: {},
-          children: [
-            new Paragraph({
-              text: `Proposal for ${data.company?.name || "Client"}`,
-              heading: HeadingLevel.HEADING_1,
-              alignment: AlignmentType.CENTER,
-            }),
-            new Paragraph({ text: "" }),
-            new Paragraph({ text: `Date: ${data.dates?.startDate || ""}` }),
-            new Paragraph({ text: `Proposal ID: ${data.id || ""}` }),
-            new Paragraph({ text: `Contact Person: ${data.company?.contactName || ""}` }),
-            new Paragraph({ text: `Email: ${data.company?.contactEmail || ""}` }),
-            new Paragraph({ text: `Phone: ${data.company?.contactPhone || ""}` }),
-            new Paragraph({ text: `Address: ${data.company?.address || ""}` }),
-            new Paragraph({ text: "" }),
-            new Paragraph({ text: "Engagement Type", heading: HeadingLevel.HEADING_2 }),
-            new Paragraph({ text: data.engagement?.type || "" }),
-            new Paragraph({ text: "Engagement Details", heading: HeadingLevel.HEADING_3 }),
-            new Paragraph({ text: data.engagement?.details || "" }),
-            new Paragraph({ text: "" }),
-            new Paragraph({ text: "Services & Scope of Work", heading: HeadingLevel.HEADING_2 }),
-            ...((Array.isArray(data.scopes) ? data.scopes : []).map((scope: any, idx: number) => [
-              new Paragraph({
-                text: `Service: ${scope.serviceType || ""}`,
-                heading: HeadingLevel.HEADING_3,
-              }),
-              new Paragraph({ text: `Description: ${scope.description || ""}` }),
-              new Paragraph({ text: `Deliverables: ${scope.deliverables || ""}` }),
-              new Paragraph({ text: `Timeline: ${scope.timeline || ""}` }),
-              new Paragraph({ text: "---" }),
-            ]).flat()),
-            new Paragraph({ text: "" }),
-            new Paragraph({ text: "Financials", heading: HeadingLevel.HEADING_2 }),
-            new Paragraph({ text: `Quoted Amount: ${data.financials?.quotedAmount || ""} ${data.financials?.currency || ""}` }),
-            new Paragraph({ text: `Payment Terms: ${data.financials?.paymentTerms || ""}` }),
-            new Paragraph({ text: "" }),
-            new Paragraph({ text: "Compliance", heading: HeadingLevel.HEADING_2 }),
-            new Paragraph({ text: "Compliance Requirements:" }),
-            ...(Array.isArray(data.compliance?.requirements) && data.compliance.requirements.length > 0
-              ? data.compliance.requirements.map((req: string) => new Paragraph({ text: `- ${req}` }))
-              : [new Paragraph({ text: "- None" })]),
-            new Paragraph({ text: `Additional Details: ${data.compliance?.details || ""}` }),
-            new Paragraph({ text: "" }),
-            new Paragraph({ text: "Project Dates", heading: HeadingLevel.HEADING_2 }),
-            new Paragraph({ text: `Start Date: ${data.dates?.startDate || ""}` }),
-            new Paragraph({ text: `End Date: ${data.dates?.endDate || ""}` }),
-            new Paragraph({ text: "" }),
-            new Paragraph({ text: "Thank you for considering our proposal." }),
-            new Paragraph({
-              children: [
-                new TextRun({ text: "Seccomply", bold: true })
-              ]
-            }),
-          ],
-        },
-      ],
+    const templatePath = path.join(process.cwd(), "proposal-template.md");
+    const templateContent = await fs.readFile(templatePath, "utf-8");
+
+    const serviceDetailsPath = path.join(process.cwd(), "service-details.json");
+    const serviceDetailsContent = await fs.readFile(serviceDetailsPath, "utf-8");
+    const serviceDetails: ServiceDetails = JSON.parse(serviceDetailsContent);
+
+    const enrichedScopes = (data.scopes || []).map((scope: Scope) => {
+      const details = serviceDetails[scope.serviceType];
+      return {
+        ...scope,
+        ...details,
+      };
     });
 
-    const buffer = await Packer.toBuffer(doc);
+    const fullData = {
+      ...data,
+      scopes: enrichedScopes,
+    };
+
+    const template = handlebars.compile(templateContent);
+    const renderedMarkdown = template(fullData);
+
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+      <meta charset="UTF-8">
+      <style>
+      body { font-family: 'Times New Roman', Times, serif; font-size: 12pt; }
+      h1 { font-size: 24pt; text-align: center; font-weight: bold; }
+      h2 { font-size: 18pt; font-weight: bold; }
+      h3 { font-size: 14pt; font-weight: bold; }
+      strong { font-weight: bold; }
+      ul { list-style-type: disc; margin-left: 40px; }
+      p { margin-bottom: 10px; }
+      </style>
+      </head>
+      <body>
+      ${renderedMarkdown
+        .replace(/\n\n/g, "</p><p>")
+        .replace(/\n/g, "<br>")}
+      </body>
+      </html>
+    `;
+
+    const generated = htmlDocx.asBlob(htmlContent) as Blob;
+
+    const buffer = Buffer.from(await generated.arrayBuffer());
+
     return {
       success: true,
       buffer,

@@ -14,8 +14,14 @@ const formSchema = z.object({
   currency: z.string(),
 })
 
-export default function FinancialsForm({ data, updateData, onContinue }) {
-  const form = useForm({
+interface FinancialsFormProps {
+  data: z.infer<typeof formSchema> | null;
+  updateData: (data: z.infer<typeof formSchema>) => void;
+  onContinue: () => void;
+}
+
+export default function FinancialsForm({ data, updateData, onContinue }: FinancialsFormProps) {
+  const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: data || {
       quotedAmount: "",
@@ -24,7 +30,7 @@ export default function FinancialsForm({ data, updateData, onContinue }) {
     },
   })
 
-  function onSubmit(values) {
+  function onSubmit(values: z.infer<typeof formSchema>) {
     updateData(values)
     if (onContinue) onContinue()
   }

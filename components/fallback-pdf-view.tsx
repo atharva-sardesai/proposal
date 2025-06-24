@@ -3,7 +3,11 @@
 import { FileText, Download, Mail } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
-export default function FallbackPDFView({ onEmailClick }) {
+interface FallbackPDFViewProps {
+  onEmailClick: () => void;
+}
+
+export default function FallbackPDFView({ onEmailClick }: FallbackPDFViewProps) {
   return (
     <div className="flex flex-col items-center justify-center h-full p-6 text-center">
       <FileText className="h-16 w-16 text-muted-foreground mb-4" />

@@ -10,10 +10,11 @@ import { Badge } from "@/components/ui/badge"
 import { Download, Eye, Mail, Search } from "lucide-react"
 import { format } from "date-fns"
 import { getProposalHistory } from "@/lib/actions"
+import { ProposalData } from "@/types/proposal"
 
 export default function ProposalHistoryPage() {
-  const [proposals, setProposals] = useState([])
-  const [filteredProposals, setFilteredProposals] = useState([])
+  const [proposals, setProposals] = useState<ProposalData[]>([])
+  const [filteredProposals, setFilteredProposals] = useState<ProposalData[]>([])
   const [searchQuery, setSearchQuery] = useState("")
   const [isLoading, setIsLoading] = useState(true)
 
@@ -40,15 +41,15 @@ export default function ProposalHistoryPage() {
       const query = searchQuery.toLowerCase()
       const filtered = proposals.filter(
         (proposal) =>
-          proposal.company.name.toLowerCase().includes(query) ||
-          proposal.company.contactName.toLowerCase().includes(query) ||
-          proposal.id.toString().includes(query),
+          (proposal.company?.name && proposal.company.name.toLowerCase().includes(query)) ||
+          (proposal.company?.contactName && proposal.company.contactName.toLowerCase().includes(query)) ||
+          (proposal.id && proposal.id.toString().includes(query)),
       )
       setFilteredProposals(filtered)
     }
   }, [searchQuery, proposals])
 
-  const getStatusBadge = (status) => {
+  const getStatusBadge = (status: string) => {
     switch (status) {
       case "draft":
         return <Badge variant="outline">Draft</Badge>
@@ -64,65 +65,6 @@ export default function ProposalHistoryPage() {
         return <Badge variant="outline">{status}</Badge>
     }
   }
-
-  // Mock data for demonstration
-  const mockProposals = [
-    {
-      id: "PROP-001",
-      company: {
-        name: "Acme Inc.",
-        contactName: "John Doe",
-      },
-      createdAt: new Date("2023-01-15"),
-      updatedAt: new Date("2023-01-15"),
-      status: "sent",
-      amount: "$15,000",
-    },
-    {
-      id: "PROP-002",
-      company: {
-        name: "TechCorp Solutions",
-        contactName: "Jane Smith",
-      },
-      createdAt: new Date("2023-02-10"),
-      updatedAt: new Date("2023-02-12"),
-      status: "viewed",
-      amount: "$25,000",
-    },
-    {
-      id: "PROP-003",
-      company: {
-        name: "Global Enterprises",
-        contactName: "Robert Johnson",
-      },
-      createdAt: new Date("2023-03-05"),
-      updatedAt: new Date("2023-03-07"),
-      status: "accepted",
-      amount: "$42,000",
-    },
-    {
-      id: "PROP-004",
-      company: {
-        name: "Innovative Systems",
-        contactName: "Sarah Williams",
-      },
-      createdAt: new Date("2023-03-20"),
-      updatedAt: new Date("2023-03-20"),
-      status: "draft",
-      amount: "$18,500",
-    },
-    {
-      id: "PROP-005",
-      company: {
-        name: "Strategic Partners",
-        contactName: "Michael Brown",
-      },
-      createdAt: new Date("2023-04-02"),
-      updatedAt: new Date("2023-04-05"),
-      status: "rejected",
-      amount: "$30,000",
-    },
-  ]
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -179,14 +121,14 @@ export default function ProposalHistoryPage() {
               </TableHeader>
               <TableBody>
                 {/* Using mock data for demonstration */}
-                {mockProposals.map((proposal) => (
+                {filteredProposals.map((proposal) => (
                   <TableRow key={proposal.id}>
                     <TableCell className="font-medium">{proposal.id}</TableCell>
-                    <TableCell>{proposal.company.name}</TableCell>
-                    <TableCell>{proposal.company.contactName}</TableCell>
-                    <TableCell>{format(proposal.createdAt, "MMM d, yyyy")}</TableCell>
-                    <TableCell>{getStatusBadge(proposal.status)}</TableCell>
-                    <TableCell>{proposal.amount}</TableCell>
+                    <TableCell>{proposal.company?.name}</TableCell>
+                    <TableCell>{proposal.company?.contactName}</TableCell>
+                    <TableCell>{proposal.createdAt ? format(new Date(proposal.createdAt), "MMM d, yyyy") : 'N/A'}</TableCell>
+                    <TableCell>{getStatusBadge(proposal.status || 'draft')}</TableCell>
+                    <TableCell>{proposal.financials?.quotedAmount}</TableCell>
                     <TableCell>
                       <div className="flex space-x-2">
                         <Button variant="ghost" size="icon" asChild>

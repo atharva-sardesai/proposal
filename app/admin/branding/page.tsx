@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { toast } from "@/hooks/use-toast"
 import { FileUpload } from "@/components/file-upload"
+import Image from 'next/image'
 
 export default function BrandingPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -22,7 +23,7 @@ export default function BrandingPage() {
     fontFamily: "Inter, sans-serif",
   })
 
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
     setFormData((prev) => ({
       ...prev,
@@ -30,7 +31,7 @@ export default function BrandingPage() {
     }))
   }
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setIsSubmitting(true)
 
@@ -42,7 +43,7 @@ export default function BrandingPage() {
         title: "Branding Updated",
         description: "Your company branding settings have been updated successfully.",
       })
-    } catch (error) {
+    } catch {
       toast({
         title: "Error",
         description: "Failed to update branding settings.",
@@ -116,9 +117,11 @@ export default function BrandingPage() {
               <div>
                 <Label>Company Logo</Label>
                 <div className="mb-2">
-                  <img
+                  <Image
                     src="https://seccomply.net/wp-content/uploads/2023/05/seccomply-logo.png"
                     alt="Seccomply Logo"
+                    width={48}
+                    height={48}
                     className="h-12 object-contain"
                   />
                 </div>

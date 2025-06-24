@@ -15,8 +15,18 @@ const formSchema = z.object({
   contactPhone: z.string().min(10, { message: "Please enter a valid phone number." }),
 })
 
-export default function CompanyDetailsForm({ data, updateData, onContinue }) {
-  const form = useForm({
+interface CompanyDetailsFormProps {
+  data: z.infer<typeof formSchema> | null;
+  updateData: (data: z.infer<typeof formSchema>) => void;
+  onContinue: () => void;
+}
+
+export default function CompanyDetailsForm({
+  data,
+  updateData,
+  onContinue,
+}: CompanyDetailsFormProps) {
+  const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: data || {
       name: "",
@@ -27,7 +37,7 @@ export default function CompanyDetailsForm({ data, updateData, onContinue }) {
     },
   })
 
-  function onSubmit(values) {
+  function onSubmit(values: z.infer<typeof formSchema>) {
     updateData(values)
     if (onContinue) onContinue()
   }

@@ -21,10 +21,12 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { toast } from "@/hooks/use-toast"
 import ServerDOCXButton from "@/components/server-docx-button"
+import Image from 'next/image'
+import { ProposalData, Scope } from "../types/proposal"
 
-export default function ProposalPreview({ data }) {
+export default function ProposalPreview({ data }: { data: ProposalData }) {
   const [emailDialogOpen, setEmailDialogOpen] = useState(false)
-  const [emailAddress, setEmailAddress] = useState(data.company.contactEmail || "")
+  const [emailAddress, setEmailAddress] = useState(data.company?.contactEmail || "")
   const [isSending, setIsSending] = useState(false)
   const [activeTab, setActiveTab] = useState("summary")
   const [showNDA, setShowNDA] = useState(false)
@@ -38,7 +40,7 @@ export default function ProposalPreview({ data }) {
         title: "Email Sent",
         description: `Proposal has been sent to ${emailAddress}`,
       })
-    } catch (error) {
+    } catch {
       toast({
         title: "Error",
         description: "Failed to send email. Please try again.",
@@ -49,18 +51,22 @@ export default function ProposalPreview({ data }) {
     }
   }
 
-  const handleTabChange = (value) => {
+  const handleTabChange = (value: string) => {
     setActiveTab(value)
   }
 
-  const formatCurrency = (amount, currency) => {
+  const formatCurrency = (amount: string | number, currency: string) => {
+    const numAmount = typeof amount === 'number' ? amount : parseFloat(amount)
+    if (isNaN(numAmount)) {
+      return "N/A"
+    }
     return new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: currency || "USD",
-    }).format(amount)
+    }).format(numAmount)
   }
 
-  const getPaymentTermsText = (terms) => {
+  const getPaymentTermsText = (terms: string) => {
     switch (terms) {
       case "net15":
         return "Net 15 Days"
@@ -75,11 +81,11 @@ export default function ProposalPreview({ data }) {
       case "custom":
         return "Custom Terms"
       default:
-        return terms
+        return terms || "N/A"
     }
   }
 
-  const getEngagementTypeText = (type) => {
+  const getEngagementTypeText = (type: string) => {
     switch (type) {
       case "one-time":
         return "One-time Project"
@@ -88,11 +94,11 @@ export default function ProposalPreview({ data }) {
       case "retainer":
         return "Retainer Agreement"
       default:
-        return type
+        return type || "N/A"
     }
   }
 
-  const getServiceTypeText = (type) => {
+  const getServiceTypeText = (type: string) => {
     switch (type) {
       case "iso27001-audit":
         return "ISO 27001 Audit Only"
@@ -181,9 +187,11 @@ export default function ProposalPreview({ data }) {
                       <h3 className="text-xl font-bold">Seccomply</h3>
                       <p className="text-sm text-muted-foreground">Shivani Tikadia, CEO</p>
                     </div>
-                    <img
+                    <Image
                       src="https://seccomply.net/wp-content/uploads/2023/05/seccomply-logo.png"
                       alt="Seccomply Logo"
+                      width={120}
+                      height={48}
                       className="h-12 object-contain"
                     />
                   </div>
@@ -194,23 +202,23 @@ export default function ProposalPreview({ data }) {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <p className="text-sm font-medium text-muted-foreground">Company Name</p>
-                      <p>{data.company.name || "N/A"}</p>
+                      <p>{data.company?.name || "N/A"}</p>
                     </div>
                     <div>
                       <p className="text-sm font-medium text-muted-foreground">Address</p>
-                      <p>{data.company.address || "N/A"}</p>
+                      <p>{data.company?.address || "N/A"}</p>
                     </div>
                     <div>
                       <p className="text-sm font-medium text-muted-foreground">Contact Person</p>
-                      <p>{data.company.contactName || "N/A"}</p>
+                      <p>{data.company?.contactName || "N/A"}</p>
                     </div>
                     <div>
                       <p className="text-sm font-medium text-muted-foreground">Contact Email</p>
-                      <p>{data.company.contactEmail || "N/A"}</p>
+                      <p>{data.company?.contactEmail || "N/A"}</p>
                     </div>
                     <div>
                       <p className="text-sm font-medium text-muted-foreground">Contact Phone</p>
-                      <p>{data.company.contactPhone || "N/A"}</p>
+                      <p>{data.company?.contactPhone || "N/A"}</p>
                     </div>
                   </div>
                 </div>
@@ -221,14 +229,14 @@ export default function ProposalPreview({ data }) {
                     <div>
                       <p className="text-sm font-medium text-muted-foreground">Quoted Amount</p>
                       <p>
-                        {data.financials.quotedAmount
-                          ? formatCurrency(data.financials.quotedAmount, data.financials.currency)
+                        {data.financials?.quotedAmount
+                          ? formatCurrency(data.financials.quotedAmount, data.financials.currency || 'USD')
                           : "N/A"}
                       </p>
                     </div>
                     <div>
                       <p className="text-sm font-medium text-muted-foreground">Payment Terms</p>
-                      <p>{getPaymentTermsText(data.financials.paymentTerms) || "N/A"}</p>
+                      <p>{getPaymentTermsText(data.financials?.paymentTerms || '') || "N/A"}</p>
                     </div>
                   </div>
                 </div>
@@ -237,7 +245,7 @@ export default function ProposalPreview({ data }) {
                   <h3 className="text-lg font-semibold mb-2">Scope of Work</h3>
                   <div className="space-y-4">
                     {Array.isArray(data.scopes) && data.scopes.length > 0 ? (
-                      data.scopes.map((scope, idx) => (
+                      data.scopes.map((scope: Scope, idx: number) => (
                         <div key={idx} className="border rounded p-3 mb-2">
                           <div>
                             <p className="text-sm font-medium text-muted-foreground">Service Type</p>
@@ -257,25 +265,6 @@ export default function ProposalPreview({ data }) {
                           </div>
                         </div>
                       ))
-                    ) : data.scope ? (
-                      <div>
-                        <div>
-                          <p className="text-sm font-medium text-muted-foreground">Service Type</p>
-                          <p>{getServiceTypeText(data.scope.serviceType) || "N/A"}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-muted-foreground">Description</p>
-                          <p className="whitespace-pre-line">{data.scope.description || "N/A"}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-muted-foreground">Deliverables</p>
-                          <p className="whitespace-pre-line">{data.scope.deliverables || "N/A"}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-muted-foreground">Timeline</p>
-                          <p className="whitespace-pre-line">{data.scope.timeline || "N/A"}</p>
-                        </div>
-                      </div>
                     ) : (
                       <div className="text-muted-foreground">No scope of work defined.</div>
                     )}
@@ -287,17 +276,17 @@ export default function ProposalPreview({ data }) {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <p className="text-sm font-medium text-muted-foreground">Engagement Type</p>
-                      <p>{getEngagementTypeText(data.engagement.type) || "N/A"}</p>
+                      <p>{getEngagementTypeText(data.engagement?.type || '') || "N/A"}</p>
                     </div>
                     <div>
                       <p className="text-sm font-medium text-muted-foreground">Project Dates</p>
                       <p>
-                        {data.dates.startDate ? format(new Date(data.dates.startDate), "PPP") : "N/A"} to{" "}
-                        {data.dates.endDate ? format(new Date(data.dates.endDate), "PPP") : "N/A"}
+                        {data.dates?.startDate ? format(new Date(data.dates.startDate), "PPP") : "N/A"} to{" "}
+                        {data.dates?.endDate ? format(new Date(data.dates.endDate), "PPP") : "N/A"}
                       </p>
                     </div>
                   </div>
-                  {data.engagement.details && (
+                  {data.engagement?.details && (
                     <div className="mt-4">
                       <p className="text-sm font-medium text-muted-foreground">Additional Details</p>
                       <p className="whitespace-pre-line">{data.engagement.details}</p>
@@ -305,13 +294,13 @@ export default function ProposalPreview({ data }) {
                   )}
                 </div>
 
-                {data.compliance.requirements && data.compliance.requirements.length > 0 && (
+                {data.compliance?.requirements && data.compliance.requirements.length > 0 && (
                   <div>
                     <h3 className="text-lg font-semibold mb-2">Compliance Requirements</h3>
                     <div>
                       <p className="text-sm font-medium text-muted-foreground">Compliance Types</p>
                       <ul className="list-disc list-inside">
-                        {data.compliance.requirements.map((req) => (
+                        {data.compliance.requirements.map((req: string) => (
                           <li key={req}>{req}</li>
                         ))}
                       </ul>
@@ -339,8 +328,8 @@ export default function ProposalPreview({ data }) {
 
                 <div className="mb-6">
                   <p className="mb-4">
-                    This Non-Disclosure Agreement (the "Agreement") is entered into as of the date of the proposal
-                    between Seccomply ("Disclosing Party") and the client company ("Receiving Party").
+                    This Non-Disclosure Agreement (the &quot;Agreement&quot;) is entered into as of the date of the proposal
+                    between Seccomply (&quot;Disclosing Party&quot;) and the client company (&quot;Receiving Party&quot;).
                   </p>
                 </div>
 
@@ -356,7 +345,7 @@ export default function ProposalPreview({ data }) {
                 <div className="mb-6">
                   <h3 className="text-lg font-semibold mb-2">2. Confidential Information</h3>
                   <p>
-                    "Confidential Information" means any information disclosed by Disclosing Party to Receiving Party,
+                    &quot;Confidential Information&quot; means any information disclosed by Disclosing Party to Receiving Party,
                     either directly or indirectly, in writing, orally or by inspection of tangible objects, including
                     without limitation documents, business plans, source code, software, documentation, financial
                     analysis, marketing plans, customer names, customer list, customer data. Confidential Information
@@ -416,12 +405,12 @@ export default function ProposalPreview({ data }) {
 
                   <div>
                     <p className="font-medium">RECEIVING PARTY:</p>
-                    <p>{data.company.name || "[Client Company Name]"}</p>
+                    <p>{data.company?.name || "[Client Company Name]"}</p>
                     <div className="border-t border-black mt-16 mb-2"></div>
                     <p>Signature</p>
                     <p>
-                      {data.company.contactName || "[Client Representative Name]"},{" "}
-                      {data.company.contactName ? "Representative" : "[Title]"}
+                      {data.company?.contactName || "[Client Representative Name]"},{" "}
+                      {data.company?.contactName ? "Representative" : "[Title]"}
                     </p>
                   </div>
                 </div>
@@ -471,7 +460,7 @@ export default function ProposalPreview({ data }) {
                   <ul className="list-disc pl-5 space-y-2">
                     <li>Any additional scope will be discussed in detail with the client prior to commencement.</li>
                     <li>A formal agreement will be reached, outlining the additional cost, deliverables.</li>
-                    <li>This ensures transparency and alignment with the client's needs and expectations.</li>
+                    <li>This ensures transparency and alignment with the client&apos;s needs and expectations.</li>
                   </ul>
                 </div>
 

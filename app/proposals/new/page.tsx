@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -12,8 +11,27 @@ import EngagementTypeForm from "@/components/engagement-type-form"
 import ComplianceForm from "@/components/compliance-form"
 import DatesForm from "@/components/dates-form"
 import ProposalPreview from "@/components/proposal-preview"
-import { createProposal } from "@/lib/actions"
 import { toast } from "@/hooks/use-toast"
+import { ProposalData, Scope } from "../../../types/proposal"
+
+const emptyProposal: ProposalData = {
+  company: { name: "", address: "", contactName: "", contactEmail: "", contactPhone: "" },
+  financials: { quotedAmount: "", paymentTerms: "net30", currency: "USD" },
+  scopes: [{ serviceType: "", description: "", deliverables: "", timeline: "" }],
+  engagement: { type: "one-time", details: "" },
+  compliance: { requirements: [], details: "" },
+  dates: { startDate: "", endDate: "" },
+}
+
+function normalizeCompany(company: Partial<ProposalData['company']> | undefined): ProposalData['company'] {
+  return {
+    name: company?.name ?? "",
+    address: company?.address ?? "",
+    contactName: company?.contactName ?? "",
+    contactEmail: company?.contactEmail ?? "",
+    contactPhone: company?.contactPhone ?? "",
+  };
+}
 
 const tabs = [
   { id: "company", label: "Company Details" },
@@ -26,20 +44,19 @@ const tabs = [
 ]
 
 export default function NewProposalPage() {
-  const router = useRouter()
-  const [formData, setFormData] = useState(() => {
+  const [formData, setFormData] = useState<ProposalData>(() => {
     if (typeof window !== "undefined") {
       const saved = window.localStorage.getItem("proposalFormData")
-      if (saved) return JSON.parse(saved)
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        return {
+          ...emptyProposal,
+          ...parsed,
+          company: normalizeCompany(parsed.company),
+        };
+      }
     }
-    return {
-      company: { name: "", address: "", contactName: "", contactEmail: "", contactPhone: "" },
-      financials: { quotedAmount: "", paymentTerms: "net30", currency: "USD" },
-      scopes: [{ serviceType: "", description: "", deliverables: "", timeline: "" }],
-      engagement: { type: "one-time", details: "" },
-      compliance: { requirements: [], details: "" },
-      dates: { startDate: "", endDate: "" },
-    }
+    return emptyProposal
   })
   const [activeTab, setActiveTab] = useState("company")
 
@@ -49,10 +66,17 @@ export default function NewProposalPage() {
     }
   }, [formData])
 
-  const updateFormData = (section: any, data: any) => {
-    setFormData((prev: typeof formData) => ({
+  const updateFormData = <T extends keyof ProposalData>(section: T, data: ProposalData[T]) => {
+    setFormData((prev) => ({
       ...prev,
       [section]: data,
+    }))
+  }
+
+  const updateScopes = (scopes: Scope[] | undefined) => {
+    setFormData((prev) => ({
+      ...prev,
+      scopes: scopes,
     }))
   }
 
@@ -98,7 +122,7 @@ export default function NewProposalPage() {
     } catch (error) {
       toast({
         title: "Error",
-        description: (error as Error).message || "Failed to generate proposal.",
+        description: (error as unknown as Error).message || "Failed to generate proposal.",
         variant: "destructive",
       })
     }
@@ -120,27 +144,27 @@ export default function NewProposalPage() {
         <Card>
           <CardContent className="pt-6">
             <TabsContent value="company">
-              <CompanyDetailsForm data={formData.company} updateData={(data: any) => updateFormData("company", data)} onContinue={handleNext} />
+              <CompanyDetailsForm data={formData.company ? formData.company : null} updateData={(data: ProposalData['company']) => updateFormData("company", data)} onContinue={handleNext} />
             </TabsContent>
 
             <TabsContent value="financials">
-              <FinancialsForm data={formData.financials} updateData={(data: any) => updateFormData("financials", data)} onContinue={handleNext} />
+              <FinancialsForm data={formData.financials ?? { quotedAmount: "", paymentTerms: "net30", currency: "USD" }} updateData={(data: ProposalData['financials']) => updateFormData("financials", data)} onContinue={handleNext} />
             </TabsContent>
 
             <TabsContent value="scope">
-              <ScopeOfWorkForm data={formData.scopes} updateData={(data: any) => updateFormData("scopes", data)} onContinue={handleNext} />
+              <ScopeOfWorkForm data={formData.scopes ? formData.scopes : []} updateData={updateScopes} onContinue={handleNext} />
             </TabsContent>
 
             <TabsContent value="engagement">
-              <EngagementTypeForm data={formData.engagement} updateData={(data: any) => updateFormData("engagement", data)} onContinue={handleNext} />
+              <EngagementTypeForm data={formData.engagement ?? { type: "one-time", details: "" }} updateData={(data: ProposalData['engagement']) => updateFormData("engagement", data)} onContinue={handleNext} />
             </TabsContent>
 
             <TabsContent value="compliance">
-              <ComplianceForm data={formData.compliance} updateData={(data: any) => updateFormData("compliance", data)} onContinue={handleNext} />
+              <ComplianceForm data={formData.compliance ? formData.compliance : null} updateData={(data: ProposalData['compliance']) => updateFormData("compliance", data)} onContinue={handleNext} />
             </TabsContent>
 
             <TabsContent value="dates">
-              <DatesForm data={formData.dates} updateData={(data: any) => updateFormData("dates", data)} onContinue={handleNext} />
+              <DatesForm data={formData.dates ?? { startDate: "", endDate: "" }} updateData={(data: ProposalData['dates']) => updateFormData("dates", data)} onContinue={handleNext} />
             </TabsContent>
 
             <TabsContent value="preview">
@@ -159,14 +183,7 @@ export default function NewProposalPage() {
                   variant="destructive"
                   onClick={() => {
                     window.localStorage.removeItem("proposalFormData")
-                    setFormData({
-                      company: { name: "", address: "", contactName: "", contactEmail: "", contactPhone: "" },
-                      financials: { quotedAmount: "", paymentTerms: "net30", currency: "USD" },
-                      scopes: [{ serviceType: "", description: "", deliverables: "", timeline: "" }],
-                      engagement: { type: "one-time", details: "" },
-                      compliance: { requirements: [], details: "" },
-                      dates: { startDate: "", endDate: "" },
-                    })
+                    setFormData(emptyProposal)
                     toast({ title: "Cleared", description: "Form has been reset." })
                   }}
                 >

@@ -1,6 +1,7 @@
 "use client"
 
 import dynamic from "next/dynamic"
+import { ProposalData } from "@/types/proposal";
 
 // Create a simple placeholder component to use while loading
 const LoadingPDF = () => (
@@ -10,12 +11,18 @@ const LoadingPDF = () => (
 )
 
 // Dynamically import the PDF viewer with no SSR
-const SimplePDFViewer = dynamic(() => import("./simple-pdf-viewer"), {
+const SimplePDFViewer = dynamic<ClientPDFViewerProps>(() => import("./simple-pdf-viewer").then((mod) => mod.SimplePDFViewer), {
   ssr: false,
   loading: () => <LoadingPDF />,
 })
 
-export default function ClientPDFViewer({ data, onEmailClick, onDownloadClick }) {
+interface ClientPDFViewerProps {
+  data: ProposalData;
+  onEmailClick: () => void;
+  onDownloadClick: () => void;
+}
+
+export default function ClientPDFViewer({ data, onEmailClick, onDownloadClick }: ClientPDFViewerProps) {
   return (
     <div className="h-full">
       <SimplePDFViewer data={data} onEmailClick={onEmailClick} onDownloadClick={onDownloadClick} />

@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
     return new NextResponse(result.buffer, {
       status: 200,
       headers: {
-        "Content-Type": result.contentType,
+        "Content-Type": result.contentType || "application/octet-stream",
         "Content-Disposition": `attachment; filename="${result.filename}"`,
       },
     })

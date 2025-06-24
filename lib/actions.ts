@@ -1,12 +1,13 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
+import { ProposalData } from "@/types/proposal"
 
 // In-memory fallback for SSR (not persistent)
-const proposalStore: Record<string, any> = typeof window === 'undefined' ? {} : ({} as any);
+const proposalStore: Record<string, ProposalData> = {}
 
 // This would connect to your database in a real application
-export async function createProposal(data: any): Promise<{ id: string }> {
+export async function createProposal(data: ProposalData): Promise<{ id: string }> {
   // Simulate API delay
   await new Promise((resolve) => setTimeout(resolve, 1000))
 
@@ -43,7 +44,7 @@ export async function getProposalHistory() {
   return []
 }
 
-export async function sendProposalByEmail(data: any, email: string) {
+export async function sendProposalByEmail(data: unknown, email: string) {
   // Simulate API delay
   await new Promise((resolve) => setTimeout(resolve, 1500))
 
@@ -54,7 +55,7 @@ export async function sendProposalByEmail(data: any, email: string) {
   return { success: true }
 }
 
-export async function saveTemplateSettings(data) {
+export async function saveTemplateSettings(data: unknown) {
   // Simulate API delay
   await new Promise((resolve) => setTimeout(resolve, 1000))
 
@@ -68,7 +69,7 @@ export async function saveTemplateSettings(data) {
   return { success: true }
 }
 
-export async function saveUserSettings(data) {
+export async function saveUserSettings(data: unknown) {
   // Simulate API delay
   await new Promise((resolve) => setTimeout(resolve, 1000))
 
@@ -82,7 +83,7 @@ export async function saveUserSettings(data) {
   return { success: true }
 }
 
-export async function generatePDF(data: any) {
+export async function generatePDF(data: unknown) {
   // Simulate API delay
   await new Promise((resolve) => setTimeout(resolve, 1500))
 
@@ -96,7 +97,7 @@ export async function generatePDF(data: any) {
   }
 }
 
-export async function generateDOCX(data: any) {
+export async function generateDOCX(data: unknown) {
   // Simulate API delay
   await new Promise((resolve) => setTimeout(resolve, 1500))
 
@@ -110,7 +111,7 @@ export async function generateDOCX(data: any) {
   }
 }
 
-export async function getProposalById(id: string): Promise<any | null> {
+export async function getProposalById(id: string): Promise<unknown | null> {
   if (typeof window !== 'undefined' && window.localStorage) {
     const all = JSON.parse(window.localStorage.getItem('proposals') || '{}');
     return all[id] || null;

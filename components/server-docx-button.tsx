@@ -4,8 +4,9 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { FileText } from "lucide-react"
 import { toast } from "@/hooks/use-toast"
+import { ProposalData } from "../types/proposal"
 
-export default function ServerDOCXButton({ data }: { data: any }) {
+export default function ServerDOCXButton({ data }: { data: ProposalData }) {
   const [isGenerating, setIsGenerating] = useState(false)
 
   const handleGenerateDOCX = async () => {
@@ -29,7 +30,7 @@ export default function ServerDOCXButton({ data }: { data: any }) {
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement("a")
       a.href = url
-      a.download = `Proposal-${data.company?.name || "Client"}.docx`
+      a.download = `Proposal-${data?.company?.name || "Client"}.docx`
       document.body.appendChild(a)
       a.click()
 

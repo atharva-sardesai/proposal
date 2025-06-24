@@ -1,13 +1,13 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { useParams, useRouter } from "next/navigation"
+import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { format } from "date-fns"
-import { Mail, FileText, FileSignature, ArrowLeft } from "lucide-react"
-import { sendProposalByEmail, getProposalById } from "@/lib/actions"
+import { Mail, FileSignature, ArrowLeft } from "lucide-react"
+import { sendProposalByEmail } from "@/lib/actions"
 import {
   Dialog,
   DialogContent,
@@ -20,310 +20,28 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { toast } from "@/hooks/use-toast"
-import { Skeleton } from "@/components/ui/skeleton"
 import ServerDOCXButton from "@/components/server-docx-button"
+import Image from 'next/image'
+import { ProposalData } from "@/types/proposal"
 
 // PDFViewer has been replaced with ClientPDFViewer
 // import { PDFViewer } from "@/components/pdf-viewer"
 
-// Mock data for demonstration
-const mockProposals = {
-  "PROP-001": {
-    id: "PROP-001",
-    company: {
-      name: "Acme Inc.",
-      address: "123 Business St, City, State, ZIP",
-      contactName: "John Doe",
-      contactEmail: "john@acme.com",
-      contactPhone: "(555) 123-4567",
-    },
-    financials: {
-      quotedAmount: "15000",
-      paymentTerms: "net30",
-      currency: "USD",
-    },
-    scope: {
-      serviceType: "iso27001-audit",
-      description:
-        "Comprehensive audit of the organization's Information Security Management System (ISMS) against ISO 27001:2013 standards.",
-      deliverables: "- Detailed audit report\n- Gap analysis document\n- Compliance status report",
-      timeline: "6 weeks",
-    },
-    engagement: {
-      type: "one-time",
-      details: "One-time comprehensive audit",
-    },
-    compliance: {
-      requirements: ["iso27001", "gdpr"],
-      details: "Focus on ISO 27001 compliance with GDPR considerations",
-    },
-    dates: {
-      startDate: "2023-06-01T00:00:00.000Z",
-      endDate: "2023-07-15T00:00:00.000Z",
-    },
-    status: "sent",
-    createdAt: "2023-05-15T00:00:00.000Z",
-  },
-  "PROP-002": {
-    id: "PROP-002",
-    company: {
-      name: "TechCorp Solutions",
-      address: "456 Tech Blvd, Innovation City, CA 90210",
-      contactName: "Jane Smith",
-      contactEmail: "jane@techcorp.com",
-      contactPhone: "(555) 987-6543",
-    },
-    financials: {
-      quotedAmount: "25000",
-      paymentTerms: "net45",
-      currency: "USD",
-    },
-    scope: {
-      serviceType: "soc2-type2",
-      description: "SOC 2 Type 2 assessment evaluating both the design and operating effectiveness of controls.",
-      deliverables: "- Readiness assessment report\n- Control matrix documentation\n- Final SOC 2 Type 2 report",
-      timeline: "12 weeks",
-    },
-    engagement: {
-      type: "ongoing",
-      details: "Initial assessment with quarterly follow-ups",
-    },
-    compliance: {
-      requirements: ["soc2", "hipaa"],
-      details: "SOC 2 compliance with HIPAA considerations for healthcare data",
-    },
-    dates: {
-      startDate: "2023-07-01T00:00:00.000Z",
-      endDate: "2023-09-30T00:00:00.000Z",
-    },
-    status: "viewed",
-    createdAt: "2023-06-10T00:00:00.000Z",
-  },
-  "PROP-003": {
-    id: "PROP-003",
-    company: {
-      name: "Global Enterprises",
-      address: "789 Global Way, International City, NY 10001",
-      contactName: "Robert Johnson",
-      contactEmail: "robert@globalent.com",
-      contactPhone: "(555) 456-7890",
-    },
-    financials: {
-      quotedAmount: "42000",
-      paymentTerms: "net30",
-      currency: "USD",
-    },
-    scope: {
-      serviceType: "vapt",
-      description: "Comprehensive Vulnerability Assessment and Penetration Testing (VAPT) of IT infrastructure.",
-      deliverables:
-        "- Detailed vulnerability assessment report\n- Penetration testing findings\n- Remediation recommendations",
-      timeline: "4 weeks",
-    },
-    engagement: {
-      type: "one-time",
-      details: "One-time assessment with optional follow-up",
-    },
-    compliance: {
-      requirements: ["pci"],
-      details: "Focus on PCI DSS compliance requirements",
-    },
-    dates: {
-      startDate: "2023-08-15T00:00:00.000Z",
-      endDate: "2023-09-15T00:00:00.000Z",
-    },
-    status: "accepted",
-    createdAt: "2023-08-05T00:00:00.000Z",
-  },
-}
-
-// Function to generate a mock proposal for any ID
-function generateMockProposal(id: string) {
-  // Create a deterministic but seemingly random number based on the ID
-  const hash = id.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0)
-
-  // List of company names to choose from
-  const companyNames = [
-    "Acme Corp",
-    "TechSolutions",
-    "Global Innovations",
-    "Cyber Security Inc.",
-    "Data Systems",
-    "Cloud Enterprises",
-    "Secure Networks",
-    "Digital Compliance",
-    "InfoSec Solutions",
-    "Compliance Tech",
-    "Security First",
-    "Data Guard",
-  ]
-
-  // List of contact names
-  const contactNames = [
-    "John Smith",
-    "Jane Doe",
-    "Robert Johnson",
-    "Emily Williams",
-    "Michael Brown",
-    "Sarah Davis",
-    "David Miller",
-    "Lisa Wilson",
-    "James Taylor",
-    "Jennifer Martinez",
-    "Thomas Anderson",
-    "Jessica Thompson",
-  ]
-
-  // List of service types
-  const serviceTypes = [
-    "iso27001-audit",
-    "iso27001-implementation",
-    "iso27001-implementation-audit",
-    "soc2-type1",
-    "soc2-type2",
-    "vapt",
-    "security-assessment",
-    "cloud-security-assessment",
-  ]
-
-  // List of engagement types
-  const engagementTypes = ["one-time", "ongoing", "retainer"]
-
-  // List of compliance requirements
-  const complianceReqs = ["iso27001", "soc2", "gdpr", "hipaa", "pci", "ccpa"]
-
-  // Generate a date within the last year
-  const createdAt = new Date()
-  createdAt.setMonth(createdAt.getMonth() - (hash % 12))
-
-  // Generate start and end dates
-  const startDate = new Date(createdAt)
-  startDate.setDate(startDate.getDate() + 14) // Start 2 weeks after creation
-
-  const endDate = new Date(startDate)
-  endDate.setMonth(endDate.getMonth() + 3) // End 3 months after start
-
-  // Generate a quoted amount between 10,000 and 100,000
-  const quotedAmount = 10000 + (hash % 90000)
-
-  // Select items based on the hash
-  const companyName = companyNames[hash % companyNames.length]
-  const contactName = contactNames[(hash + 1) % contactNames.length]
-  const serviceType = serviceTypes[(hash + 2) % serviceTypes.length]
-  const engagementType = engagementTypes[(hash + 3) % engagementTypes.length]
-
-  // Select 1-3 compliance requirements
-  const requirements = []
-  for (let i = 0; i < 3; i++) {
-    if ((hash + i) % 2 === 0) {
-      requirements.push(complianceReqs[(hash + i) % complianceReqs.length])
-    }
-  }
-
-  // Generate a status based on the hash
-  const statuses = ["draft", "sent", "viewed", "accepted", "rejected"]
-  const status = statuses[hash % statuses.length]
-
-  // Return the generated proposal
-  return {
-    id,
-    company: {
-      name: companyName,
-      address: `${123 + (hash % 877)} Business Ave, Suite ${100 + (hash % 900)}, Business City, BC ${10000 + (hash % 90000)}`,
-      contactName,
-      contactEmail: `${contactName.split(" ")[0].toLowerCase()}@${companyName.toLowerCase().replace(/\s+/g, "")}.com`,
-      contactPhone: `(${100 + (hash % 900)}) ${100 + (hash % 900)}-${1000 + (hash % 9000)}`,
-    },
-    financials: {
-      quotedAmount: quotedAmount.toString(),
-      paymentTerms: ["net15", "net30", "net45", "net60"][hash % 4],
-      currency: "USD",
-    },
-    scope: {
-      serviceType,
-      description: `Comprehensive ${serviceType.replace(/-/g, " ")} service tailored to the client's specific needs and requirements.`,
-      deliverables:
-        "- Detailed assessment report\n- Findings and recommendations\n- Executive summary\n- Technical documentation",
-      timeline: `${4 + (hash % 12)} weeks`,
-    },
-    engagement: {
-      type: engagementType,
-      details: `${
-        engagementType === "one-time"
-          ? "One-time comprehensive assessment"
-          : engagementType === "ongoing"
-            ? "Ongoing service with quarterly reviews"
-            : "Retainer agreement with monthly support"
-      }`,
-    },
-    compliance: {
-      requirements,
-      details:
-        requirements.length > 0
-          ? `Focus on ${requirements.join(", ")} compliance requirements and best practices.`
-          : "General compliance assessment based on industry standards.",
-    },
-    dates: {
-      startDate: startDate.toISOString(),
-      endDate: endDate.toISOString(),
-    },
-    status,
-    createdAt: createdAt.toISOString(),
-  }
-}
-
-type Proposal = {
-  id: string
-  company: {
-    name: string
-    address: string
-    contactName: string
-    contactEmail: string
-    contactPhone: string
-  }
-  financials: {
-    quotedAmount: string
-    paymentTerms: string
-    currency: string
-  }
-  scopes: Array<{
-    serviceType: string
-    description: string
-    deliverables: string
-    timeline: string
-    [key: string]: any
-  }>
-  engagement: {
-    type: string
-    details: string
-  }
-  compliance: {
-    requirements: string[]
-    details: string
-  }
-  dates: {
-    startDate: string
-    endDate: string
-  }
-  createdAt?: string
-}
-
 export default function ProposalDetailPage() {
   const router = useRouter()
-  // @ts-ignore
-  const proposal = typeof window !== 'undefined' && window.history.state && window.history.state.usr ? window.history.state.usr : null
+  const proposal: ProposalData = typeof window !== 'undefined' && window.history.state && window.history.state.usr ? window.history.state.usr : null
   const [emailDialogOpen, setEmailDialogOpen] = useState(false)
   const [emailAddress, setEmailAddress] = useState(proposal?.company?.contactEmail || "")
   const [isSending, setIsSending] = useState(false)
   const [activeTab, setActiveTab] = useState("summary")
   const [showNDA, setShowNDA] = useState(false)
 
-  if (!proposal) {
+  if (!proposal || !proposal.company || !proposal.financials || !proposal.engagement || !proposal.dates || !proposal.compliance || !proposal.scopes) {
     return (
       <div className="container mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold mb-8">Proposal Not Found</h1>
         <div className="flex flex-col items-center justify-center h-64 border rounded-lg bg-muted/10">
-          <p className="text-lg font-semibold mb-2">No proposal data found.</p>
+          <p className="text-lg font-semibold mb-2">No proposal data found or data is incomplete.</p>
           <Button onClick={() => router.push("/proposals/new")}>Create New Proposal</Button>
         </div>
       </div>
@@ -339,7 +57,7 @@ export default function ProposalDetailPage() {
         title: "Email Sent",
         description: `Proposal has been sent to ${emailAddress}`,
       })
-    } catch (error) {
+    } catch {
       toast({
         title: "Error",
         description: "Failed to send email. Please try again.",
@@ -354,12 +72,18 @@ export default function ProposalDetailPage() {
     setActiveTab(value)
   }
 
-  const formatCurrency = (amount: string, currency: string) => {
-    const num = typeof amount === 'string' ? parseFloat(amount) : amount
+  const formatCurrency = (amount: string | number, currency: string) => {
+    let numAmount: number = 0;
+    if (typeof amount === 'number') {
+      numAmount = amount;
+    } else if (typeof amount === 'string') {
+      const parsed = Number(amount);
+      numAmount = Number.isFinite(parsed) ? parsed : 0;
+    }
     return new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: currency || "USD",
-    }).format(num)
+    }).format(numAmount);
   }
 
   const getPaymentTermsText = (terms: string) => {
@@ -415,47 +139,6 @@ export default function ProposalDetailPage() {
       default:
         return type || "N/A"
     }
-  }
-
-  const formatAmount = (amount: string, currency: string) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: currency || "USD",
-    }).format(amount)
-  }
-
-  const formatPaymentTerms = (terms: string) => {
-    switch (terms) {
-      case "net15":
-        return "Net 15 Days"
-      case "net30":
-        return "Net 30 Days"
-      case "net45":
-        return "Net 45 Days"
-      case "net60":
-        return "Net 60 Days"
-      case "immediate":
-        return "Immediate Payment"
-      case "custom":
-        return "Custom Terms"
-      default:
-        return terms
-    }
-  }
-
-  const getRequirementText = (value: string): string => {
-    // ... existing code ...
-    return value
-  }
-
-  const getInitials = (name: string): string => {
-    // ... existing code ...
-    return name
-  }
-
-  const getTimelineText = (timeline: string): string => {
-    // ... existing code ...
-    return timeline
   }
 
   return (
@@ -537,9 +220,11 @@ export default function ProposalDetailPage() {
                         <h3 className="text-xl font-bold">Seccomply</h3>
                         <p className="text-sm text-muted-foreground">Shivani Tikadia, CEO</p>
                       </div>
-                      <img
+                      <Image
                         src="https://seccomply.net/wp-content/uploads/2023/05/seccomply-logo.png"
                         alt="Seccomply Logo"
+                        width={120}
+                        height={48}
                         className="h-12 object-contain"
                       />
                     </div>
@@ -577,14 +262,12 @@ export default function ProposalDetailPage() {
                       <div>
                         <p className="text-sm font-medium text-muted-foreground">Quoted Amount</p>
                         <p>
-                          {proposal.financials.quotedAmount
-                            ? formatCurrency(proposal.financials.quotedAmount, proposal.financials.currency)
-                            : "N/A"}
+                          {formatCurrency(proposal.financials.quotedAmount || '0', proposal.financials.currency || 'USD')}
                         </p>
                       </div>
                       <div>
                         <p className="text-sm font-medium text-muted-foreground">Payment Terms</p>
-                        <p>{getPaymentTermsText(proposal.financials.paymentTerms) || "N/A"}</p>
+                        <p>{getPaymentTermsText(proposal.financials.paymentTerms || '')}</p>
                       </div>
                     </div>
                   </div>
@@ -592,22 +275,26 @@ export default function ProposalDetailPage() {
                   <div>
                     <h3 className="text-lg font-semibold mb-2">Scope of Work</h3>
                     <div className="space-y-4">
-                      <div>
-                        <p className="text-sm font-medium text-muted-foreground">Service Type</p>
-                        <p>{getServiceTypeText(proposal.scopes[0].serviceType) || "N/A"}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-muted-foreground">Description</p>
-                        <p className="whitespace-pre-line">{proposal.scopes[0].description || "N/A"}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-muted-foreground">Deliverables</p>
-                        <p className="whitespace-pre-line">{proposal.scopes[0].deliverables || "N/A"}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-muted-foreground">Timeline</p>
-                        <p className="whitespace-pre-line">{proposal.scopes[0].timeline || "N/A"}</p>
-                      </div>
+                      {proposal.scopes.map((scope, idx) => (
+                        <div key={idx} className="border rounded p-3 mb-2">
+                          <div>
+                            <p className="text-sm font-medium text-muted-foreground">Service Type</p>
+                            <p>{getServiceTypeText(scope.serviceType || '')}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-muted-foreground">Description</p>
+                            <p className="whitespace-pre-line">{scope.description || "N/A"}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-muted-foreground">Deliverables</p>
+                            <p className="whitespace-pre-line">{scope.deliverables || "N/A"}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-muted-foreground">Timeline</p>
+                            <p className="whitespace-pre-line">{scope.timeline || "N/A"}</p>
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
 
@@ -616,13 +303,13 @@ export default function ProposalDetailPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <p className="text-sm font-medium text-muted-foreground">Engagement Type</p>
-                        <p>{getEngagementTypeText(proposal.engagement.type) || "N/A"}</p>
+                        <p>{getEngagementTypeText(proposal.engagement.type || '')}</p>
                       </div>
                       <div>
                         <p className="text-sm font-medium text-muted-foreground">Project Dates</p>
                         <p>
-                          {proposal.dates.startDate ? format(new Date(proposal.dates.startDate), "PPP") : "N/A"} to{" "}
-                          {proposal.dates.endDate ? format(new Date(proposal.dates.endDate), "PPP") : "N/A"}
+                          {format(new Date(proposal.dates.startDate!), "PPP")} to{" "}
+                          {format(new Date(proposal.dates.endDate!), "PPP")}
                         </p>
                       </div>
                     </div>
@@ -640,7 +327,7 @@ export default function ProposalDetailPage() {
                       <div>
                         <p className="text-sm font-medium text-muted-foreground">Compliance Types</p>
                         <ul className="list-disc list-inside">
-                          {proposal.compliance.requirements.map((req) => (
+                          {proposal.compliance.requirements.map((req: string) => (
                             <li key={req}>{req}</li>
                           ))}
                         </ul>
@@ -668,8 +355,8 @@ export default function ProposalDetailPage() {
 
                   <div className="mb-6">
                     <p className="mb-4">
-                      This Non-Disclosure Agreement (the "Agreement") is entered into as of the date of the proposal
-                      between Seccomply ("Disclosing Party") and the client company ("Receiving Party").
+                      This Non-Disclosure Agreement (the &quot;Agreement&quot;) is entered into as of the date of the proposal
+                      between Seccomply (&quot;Disclosing Party&quot;) and the client company (&quot;Receiving Party&quot;).
                     </p>
                   </div>
 
@@ -685,7 +372,7 @@ export default function ProposalDetailPage() {
                   <div className="mb-6">
                     <h3 className="text-lg font-semibold mb-2">2. Confidential Information</h3>
                     <p>
-                      "Confidential Information" means any information disclosed by Disclosing Party to Receiving Party,
+                      &quot;Confidential Information&quot; means any information disclosed by Disclosing Party to Receiving Party,
                       either directly or indirectly, in writing, orally or by inspection of tangible objects, including
                       without limitation documents, business plans, source code, software, documentation, financial
                       analysis, marketing plans, customer names, customer list, customer data. Confidential Information
@@ -800,7 +487,7 @@ export default function ProposalDetailPage() {
                     <ul className="list-disc pl-5 space-y-2">
                       <li>Any additional scope will be discussed in detail with the client prior to commencement.</li>
                       <li>A formal agreement will be reached, outlining the additional cost, deliverables.</li>
-                      <li>This ensures transparency and alignment with the client's needs and expectations.</li>
+                      <li>This ensures transparency and alignment with the client&apos;s needs and expectations.</li>
                     </ul>
                   </div>
 

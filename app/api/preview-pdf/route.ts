@@ -1,27 +1,22 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { generatePDF } from "@/lib/generate-pdf"
+import { ProposalData } from "@/types/proposal"
 
 export async function POST(request: NextRequest) {
   try {
-    const data = await request.json()
+    const data: ProposalData = await request.json()
 
     const result = await generatePDF(data)
 
-    if (!result.success) {
-      return NextResponse.json({ error: result.error || "Failed to generate PDF" }, { status: 500 })
-    }
-
-    // Return the PDF as a downloadable file
     return new NextResponse(result.buffer, {
       status: 200,
       headers: {
-        "Content-Type": "application/pdf",
-        "Content-Disposition": `inline; filename="${result.filename}"`,
+        "Content-Type": result.contentType,
       },
     })
-  } catch (error) {
-    console.error("Error in PDF preview generation API:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+  } catch (error: any) {
+    console.error("Error in PDF preview API:", error)
+    return NextResponse.json({ error: error.message || "Internal server error" }, { status: 500 })
   }
 }
 

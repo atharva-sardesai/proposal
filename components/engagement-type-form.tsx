@@ -13,8 +13,14 @@ const formSchema = z.object({
   details: z.string().optional(),
 })
 
-export default function EngagementTypeForm({ data, updateData, onContinue }) {
-  const form = useForm({
+interface EngagementTypeFormProps {
+  data: z.infer<typeof formSchema> | null;
+  updateData: (data: z.infer<typeof formSchema>) => void;
+  onContinue: () => void;
+}
+
+export default function EngagementTypeForm({ data, updateData, onContinue }: EngagementTypeFormProps) {
+  const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: data || {
       type: "one-time",
@@ -22,7 +28,7 @@ export default function EngagementTypeForm({ data, updateData, onContinue }) {
     },
   })
 
-  function onSubmit(values) {
+  function onSubmit(values: z.infer<typeof formSchema>) {
     updateData(values)
     if (onContinue) onContinue()
   }

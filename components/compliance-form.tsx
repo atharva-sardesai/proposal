@@ -22,8 +22,14 @@ const formSchema = z.object({
   details: z.string().optional(),
 })
 
-export default function ComplianceForm({ data, updateData, onContinue }) {
-  const form = useForm({
+interface ComplianceFormProps {
+  data: z.infer<typeof formSchema> | null;
+  updateData: (data: z.infer<typeof formSchema>) => void;
+  onContinue: () => void;
+}
+
+export default function ComplianceForm({ data, updateData, onContinue }: ComplianceFormProps) {
+  const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: data || {
       requirements: [],
@@ -31,7 +37,7 @@ export default function ComplianceForm({ data, updateData, onContinue }) {
     },
   })
 
-  function onSubmit(values) {
+  function onSubmit(values: z.infer<typeof formSchema>) {
     updateData(values)
     if (onContinue) onContinue()
   }
@@ -66,9 +72,10 @@ export default function ComplianceForm({ data, updateData, onContinue }) {
                             <Checkbox
                               checked={field.value?.includes(item.id)}
                               onCheckedChange={(checked) => {
+                                const currentValue = field.value || [];
                                 return checked
-                                  ? field.onChange([...field.value, item.id])
-                                  : field.onChange(field.value?.filter((value) => value !== item.id))
+                                  ? field.onChange([...currentValue, item.id])
+                                  : field.onChange(currentValue.filter((value) => value !== item.id))
                               }}
                             />
                           </FormControl>

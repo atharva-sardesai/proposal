@@ -15,7 +15,7 @@ import { FileUpload } from "@/components/file-upload"
 export default function AdminPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const handleTemplateSubmit = async (e) => {
+  const handleTemplateSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setIsSubmitting(true)
 
@@ -28,7 +28,7 @@ export default function AdminPage() {
         title: "Settings Saved",
         description: "Template settings have been updated successfully.",
       })
-    } catch (error) {
+    } catch {
       toast({
         title: "Error",
         description: "Failed to save template settings.",
@@ -39,7 +39,7 @@ export default function AdminPage() {
     }
   }
 
-  const handleUserSubmit = async (e) => {
+  const handleUserSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setIsSubmitting(true)
 
@@ -52,7 +52,7 @@ export default function AdminPage() {
         title: "Settings Saved",
         description: "User settings have been updated successfully.",
       })
-    } catch (error) {
+    } catch {
       toast({
         title: "Error",
         description: "Failed to save user settings.",

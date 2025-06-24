@@ -3,14 +3,14 @@
 import { useState, useEffect } from "react"
 import FallbackPDFPreview from "@/components/fallback-pdf-preview"
 import { format } from "date-fns"
+import { ProposalData } from "../types/proposal"
 
 // We'll only import react-pdf components after checking we're in a browser
-let Document, Page, Text, View, StyleSheet, PDFViewer
+let Document: any, Page: any, Text: any, View: any, StyleSheet: any, PDFViewer: any
 
-export function PDFRenderer({ data, onEmailClick, onDownloadClick }) {
+export function PDFRenderer({ data, onEmailClick, onDownloadClick }: { data: ProposalData; onEmailClick: () => void; onDownloadClick: () => void }) {
   const [isLoaded, setIsLoaded] = useState(false)
   const [hasError, setHasError] = useState(false)
-  const [ReactPDF, setReactPDF] = useState(null)
 
   useEffect(() => {
     // Only import react-pdf in the browser
@@ -27,7 +27,6 @@ export function PDFRenderer({ data, onEmailClick, onDownloadClick }) {
         StyleSheet = reactPDF.StyleSheet
         PDFViewer = reactPDF.PDFViewer
 
-        setReactPDF(reactPDF)
         setIsLoaded(true)
       } catch (error) {
         console.error("Error loading react-pdf:", error)
@@ -97,6 +96,24 @@ export function PDFRenderer({ data, onEmailClick, onDownloadClick }) {
         textAlign: "center",
         fontSize: 10,
       },
+      h2: {
+        fontSize: 18,
+        fontWeight: "bold",
+        marginBottom: 10,
+      },
+      h3: {
+        fontSize: 16,
+        fontWeight: "bold",
+        marginBottom: 5,
+      },
+      h4: {
+        fontSize: 14,
+        fontWeight: "bold",
+        marginBottom: 5,
+      },
+      scopeItem: {
+        marginBottom: 10,
+      },
     })
 
     // Create Document Component
@@ -121,17 +138,6 @@ export function PDFRenderer({ data, onEmailClick, onDownloadClick }) {
           </View>
 
           <View style={styles.section}>
-            <Text style={styles.header}>Project Details</Text>
-            <Text style={styles.text}>
-              Start Date: {data.dates.startDate ? format(new Date(data.dates.startDate), "MMMM d, yyyy") : "N/A"}
-            </Text>
-            <Text style={styles.text}>
-              End Date: {data.dates.endDate ? format(new Date(data.dates.endDate), "MMMM d, yyyy") : "N/A"}
-            </Text>
-            <Text style={styles.text}>Service Type: {data.scope.serviceType || "N/A"}</Text>
-          </View>
-
-          <View style={styles.section}>
             <Text style={styles.header}>Financial Details</Text>
             <Text style={styles.text}>
               Quoted Amount:{" "}
@@ -145,6 +151,45 @@ export function PDFRenderer({ data, onEmailClick, onDownloadClick }) {
             <Text style={styles.text}>• 50% final payment upon delivery of deliverables</Text>
             <Text style={styles.text}>• Advance payment due within 3 days of signing</Text>
             <Text style={styles.text}>• Final payment due within 6 days of delivery</Text>
+          </View>
+
+          <View style={styles.section}>
+            <Text style={styles.h2}>Scope of Work</Text>
+            {data.scopes?.map((scope, index) => (
+              <View key={index} style={styles.scopeItem}>
+                <Text style={styles.h3}>{scope.serviceType}</Text>
+                <Text style={styles.text}>{scope.description}</Text>
+                <Text style={styles.h4}>Deliverables</Text>
+                <Text style={styles.text}>{scope.deliverables}</Text>
+                <Text style={styles.h4}>Timeline</Text>
+                <Text style={styles.text}>{scope.timeline}</Text>
+              </View>
+            ))}
+          </View>
+
+          <View style={styles.section}>
+            <Text style={styles.h2}>Financials</Text>
+            <Text style={styles.text}>Quoted Amount: {data.financials.quotedAmount}</Text>
+            <Text style={styles.text}>Payment Terms: {data.financials.paymentTerms}</Text>
+            <Text style={styles.text}>Currency: {data.financials.currency}</Text>
+          </View>
+
+          <View style={styles.section}>
+            <Text style={styles.h2}>Engagement</Text>
+            <Text style={styles.text}>Type: {data.engagement.type}</Text>
+            <Text style={styles.text}>Details: {data.engagement.details}</Text>
+          </View>
+
+          <View style={styles.section}>
+            <Text style={styles.h2}>Dates</Text>
+            <Text style={styles.text}>Start Date: {format(new Date(data.dates.startDate), "MMMM d, yyyy")}</Text>
+            <Text style={styles.text}>End Date: {format(new Date(data.dates.endDate), "MMMM d, yyyy")}</Text>
+          </View>
+
+          <View style={styles.section}>
+            <Text style={styles.h2}>Compliance</Text>
+            <Text style={styles.text}>Requirements: {data.compliance?.requirements?.join(", ")}</Text>
+            <Text style={styles.text}>Details: {data.compliance?.details}</Text>
           </View>
 
           <Text style={styles.footer}>

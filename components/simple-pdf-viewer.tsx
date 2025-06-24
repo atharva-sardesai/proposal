@@ -5,8 +5,8 @@ import { Button } from "@/components/ui/button"
 import { Download, Mail } from "lucide-react"
 import FallbackPDFPreview from "@/components/fallback-pdf-preview"
 
-export default function SimplePDFViewer({ data, onEmailClick, onDownloadClick }) {
-  const [pdfUrl, setPdfUrl] = useState(null)
+export function SimplePDFViewer({ data, onEmailClick, onDownloadClick }: { data: unknown; onEmailClick: () => void; onDownloadClick: () => void }) {
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [hasError, setHasError] = useState(false)
 
@@ -53,7 +53,7 @@ export default function SimplePDFViewer({ data, onEmailClick, onDownloadClick })
         URL.revokeObjectURL(pdfUrl)
       }
     }
-  }, [data])
+  }, [pdfUrl, data])
 
   if (isLoading) {
     return (

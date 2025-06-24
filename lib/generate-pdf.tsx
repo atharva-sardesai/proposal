@@ -3,6 +3,7 @@
 import { renderToBuffer } from "@react-pdf/renderer"
 import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer"
 import { format } from "date-fns"
+import { ProposalData } from "@/types/proposal"
 
 // Create styles
 const styles = StyleSheet.create({
@@ -48,7 +49,7 @@ const styles = StyleSheet.create({
   },
 })
 
-export async function generatePDF(data) {
+export async function generatePDF(data: ProposalData) {
   try {
     // Create a PDF document
     const MyDocument = (
@@ -72,15 +73,21 @@ export async function generatePDF(data) {
           </View>
 
           <View style={styles.section}>
-            <Text style={styles.header}>Project Details</Text>
+            <Text style={styles.header}>Project Dates</Text>
             <Text style={styles.text}>
               Start Date: {data.dates?.startDate ? format(new Date(data.dates.startDate), "MMMM d, yyyy") : "N/A"}
             </Text>
             <Text style={styles.text}>
               End Date: {data.dates?.endDate ? format(new Date(data.dates.endDate), "MMMM d, yyyy") : "N/A"}
             </Text>
-            <Text style={styles.text}>Service Type: {data.scope?.serviceType || "N/A"}</Text>
           </View>
+
+          {data.scopes?.map((scope, index) => (
+            <View key={index} style={styles.section}>
+              <Text style={styles.header}>Scope of Work: {scope.serviceType}</Text>
+              <Text>{scope.description}</Text>
+            </View>
+          ))}
 
           <View style={styles.section}>
             <Text style={styles.header}>Financial Details</Text>
@@ -115,12 +122,9 @@ export async function generatePDF(data) {
       contentType: "application/pdf",
       filename: `Proposal-${data.company?.name || "Client"}.pdf`,
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error generating PDF:", error)
-    return {
-      success: false,
-      error: error.message,
-    }
+    throw new Error("Failed to generate PDF")
   }
 }
 
