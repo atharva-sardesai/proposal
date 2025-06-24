@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { ProposalData } from "../types/proposal"
 
@@ -10,8 +10,32 @@ export default function ScopeOfWorkForm({ data, updateData, onContinue }: { data
   const [editingIndex, setEditingIndex] = useState(-1)
   const defaultScope = { serviceType: "", description: "", deliverables: "", timeline: "" };
   const [form, setForm] = useState<{ serviceType: string; description: string; deliverables: string; timeline: string }>(defaultScope);
+  const [serviceDetails, setServiceDetails] = useState<any>({});
 
-  // When editing, populate form
+  // Load service-details.json on mount
+  useEffect(() => {
+    fetch("/service-details.json")
+      .then((res) => res.json())
+      .then((json) => setServiceDetails(json))
+      .catch(() => setServiceDetails({}))
+  }, []);
+
+  // Auto-populate fields when serviceType changes
+  useEffect(() => {
+    if (form.serviceType && serviceDetails[form.serviceType]) {
+      setForm((prev) => ({
+        ...prev,
+        description: serviceDetails[form.serviceType].description || "",
+        deliverables: Array.isArray(serviceDetails[form.serviceType].deliverables)
+          ? serviceDetails[form.serviceType].deliverables.join(", ")
+          : (serviceDetails[form.serviceType].deliverables || ""),
+        timeline: serviceDetails[form.serviceType].timeline || "",
+      }))
+    }
+    // Only run when serviceType changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form.serviceType]);
+
   function handleEdit(index: number) {
     setEditingIndex(index)
     setForm({
@@ -56,10 +80,10 @@ export default function ScopeOfWorkForm({ data, updateData, onContinue }: { data
         <h2 className="text-2xl font-bold">Scope of Work</h2>
         <p className="text-muted-foreground">Define the scope of work for this proposal. You can add multiple services.</p>
       </div>
-      <form onSubmit={handleAddOrUpdate} className="space-y-4">
+      <form onSubmit={handleAddOrUpdate} className="space-y-4" autoComplete="off">
         <div>
           <label className="block font-medium">Service Type</label>
-          <select name="serviceType" value={form.serviceType} onChange={handleSelectChange} className="w-full border rounded p-2">
+          <select name="serviceType" value={form.serviceType} onChange={handleSelectChange} className="w-full border rounded p-2" autoComplete="off">
             <option value="">Select a service type</option>
             <option value="iso27001-audit">ISO 27001 Audit Only</option>
             <option value="iso27001-implementation">ISO 27001 Implementation Only</option>
@@ -73,15 +97,15 @@ export default function ScopeOfWorkForm({ data, updateData, onContinue }: { data
         </div>
         <div>
           <label className="block font-medium">Project Description</label>
-          <textarea name="description" value={form.description} onChange={handleChange} className="w-full border rounded p-2 min-h-[80px]" />
+          <textarea name="description" value={form.description} onChange={handleChange} className="w-full border rounded p-2 min-h-[80px]" autoComplete="off" />
         </div>
         <div>
           <label className="block font-medium">Deliverables</label>
-          <textarea name="deliverables" value={form.deliverables} onChange={handleChange} className="w-full border rounded p-2 min-h-[80px]" />
+          <textarea name="deliverables" value={form.deliverables} onChange={handleChange} className="w-full border rounded p-2 min-h-[80px]" autoComplete="off" />
         </div>
         <div>
           <label className="block font-medium">Timeline</label>
-          <textarea name="timeline" value={form.timeline} onChange={handleChange} className="w-full border rounded p-2 min-h-[40px]" />
+          <textarea name="timeline" value={form.timeline} onChange={handleChange} className="w-full border rounded p-2 min-h-[40px]" autoComplete="off" />
         </div>
         <div className="flex gap-2">
           <Button type="submit" className="w-full">{editingIndex >= 0 ? "Update Service" : "Add Service"}</Button>
@@ -94,20 +118,22 @@ export default function ScopeOfWorkForm({ data, updateData, onContinue }: { data
         <h3 className="font-semibold mb-2">Added Services</h3>
         {services.length === 0 && <div className="text-muted-foreground">No services added yet.</div>}
         <ul className="space-y-2">
-          {services.map((svc, i: number) => (
-            <li key={i} className="border rounded p-3 flex flex-col md:flex-row md:items-center md:justify-between gap-2">
-              <div>
-                <div className="font-medium">{svc.serviceType}</div>
-                <div className="text-sm text-muted-foreground">{svc.description}</div>
-                <div className="text-xs">Deliverables: {svc.deliverables}</div>
-                <div className="text-xs">Timeline: {svc.timeline}</div>
-              </div>
-              <div className="flex gap-2">
-                <Button type="button" size="sm" variant="outline" onClick={() => handleEdit(i)}>Edit</Button>
-                <Button type="button" size="sm" variant="destructive" onClick={() => handleRemove(i)}>Remove</Button>
-              </div>
-            </li>
-          ))}
+          {services
+            .filter(svc => svc.serviceType && svc.serviceType.trim() !== "")
+            .map((svc, i: number) => (
+              <li key={i} className="border rounded p-3 flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+                <div>
+                  <div className="font-medium">{svc.serviceType}</div>
+                  <div className="text-sm text-muted-foreground">{svc.description}</div>
+                  <div className="text-xs">Deliverables: {svc.deliverables}</div>
+                  <div className="text-xs">Timeline: {svc.timeline}</div>
+                </div>
+                <div className="flex gap-2">
+                  <Button type="button" size="sm" variant="outline" onClick={() => handleEdit(i)}>Edit</Button>
+                  <Button type="button" size="sm" variant="destructive" onClick={() => handleRemove(i)}>Remove</Button>
+                </div>
+              </li>
+            ))}
         </ul>
       </div>
       <div className="flex justify-end">

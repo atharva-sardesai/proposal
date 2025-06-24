@@ -46,7 +46,7 @@ const tabs = [
 export default function NewProposalPage() {
   const [formData, setFormData] = useState<ProposalData>(() => {
     if (typeof window !== "undefined") {
-      const saved = window.localStorage.getItem("proposalFormData")
+      const saved = window.sessionStorage.getItem("proposalFormData")
       if (saved) {
         const parsed = JSON.parse(saved);
         return {
@@ -62,7 +62,13 @@ export default function NewProposalPage() {
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      window.localStorage.setItem("proposalFormData", JSON.stringify(formData))
+      window.sessionStorage.removeItem("proposalFormData");
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.sessionStorage.setItem("proposalFormData", JSON.stringify(formData))
     }
   }, [formData])
 
@@ -173,7 +179,7 @@ export default function NewProposalPage() {
                 <Button
                   variant="outline"
                   onClick={() => {
-                    window.localStorage.setItem("proposalFormData", JSON.stringify(formData))
+                    window.sessionStorage.setItem("proposalFormData", JSON.stringify(formData))
                     toast({ title: "Saved", description: "Your proposal has been saved." })
                   }}
                 >
@@ -182,7 +188,7 @@ export default function NewProposalPage() {
                 <Button
                   variant="destructive"
                   onClick={() => {
-                    window.localStorage.removeItem("proposalFormData")
+                    window.sessionStorage.removeItem("proposalFormData")
                     setFormData(emptyProposal)
                     toast({ title: "Cleared", description: "Form has been reset." })
                   }}
