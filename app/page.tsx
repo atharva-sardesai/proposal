@@ -31,44 +31,6 @@ export default function Home() {
               </Link>
             </CardFooter>
           </Card>
-
-          <Card>
-            <CardHeader className="space-y-1">
-              <CardTitle className="text-2xl">Proposal History</CardTitle>
-              <CardDescription>View and manage previous proposals</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex justify-center">
-                <History className="h-24 w-24 text-primary" />
-              </div>
-            </CardContent>
-            <CardFooter>
-              <Link href="/proposals/history" className="w-full">
-                <Button variant="outline" className="w-full">
-                  View History
-                </Button>
-              </Link>
-            </CardFooter>
-          </Card>
-
-          <Card>
-            <CardHeader className="space-y-1">
-              <CardTitle className="text-2xl">Admin Settings</CardTitle>
-              <CardDescription>Manage templates and system settings</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex justify-center">
-                <Settings className="h-24 w-24 text-primary" />
-              </div>
-            </CardContent>
-            <CardFooter>
-              <Link href="/admin" className="w-full">
-                <Button variant="outline" className="w-full">
-                  Admin Panel
-                </Button>
-              </Link>
-            </CardFooter>
-          </Card>
         </div>
       </div>
     </div>
