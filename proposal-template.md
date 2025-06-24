@@ -76,7 +76,7 @@ SecComply is pleased to present this proposal for the following services:
 
 ## Compliance Requirements
 
-{{Compliance.requirements.join ', '}}
+{{compliance.requirements}}
 
 {{Compliance.details}}
 

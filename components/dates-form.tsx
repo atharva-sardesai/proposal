@@ -34,12 +34,9 @@ interface DatesFormProps {
 export default function DatesForm({ data, updateData, onContinue }: DatesFormProps) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: data ? {
-      startDate: new Date(data.startDate),
-      endDate: new Date(data.endDate),
-    } : {
-      startDate: undefined,
-      endDate: undefined,
+    defaultValues: {
+      startDate: data?.startDate ? new Date(data.startDate) : new Date(),
+      endDate: data?.endDate ? new Date(data.endDate) : new Date(new Date().setDate(new Date().getDate() + 7)),
     },
   })
 

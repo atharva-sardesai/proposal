@@ -155,8 +155,8 @@ export default function ProposalDetailPage() {
         <div>
           <h2 className="text-2xl font-bold">Proposal for {proposal.company.name}</h2>
           <p className="text-muted-foreground">
-            Created on {typeof proposal.createdAt === 'string' && !isNaN(new Date(proposal.createdAt as string).getTime())
-              ? format(new Date(proposal.createdAt as string), "MMMM d, yyyy")
+            Created on {proposal.createdAt && !isNaN(new Date(proposal.createdAt).getTime())
+              ? format(new Date(proposal.createdAt), "MMMM d, yyyy")
               : "N/A"}
           </p>
         </div>
@@ -303,13 +303,22 @@ export default function ProposalDetailPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <p className="text-sm font-medium text-muted-foreground">Engagement Type</p>
-                        <p>{getEngagementTypeText(proposal.engagement.type || '')}</p>
+                        <p>{getEngagementTypeText(proposal.engagement.type)}</p>
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-muted-foreground">Project Dates</p>
+                        <p className="text-sm font-medium text-muted-foreground">Start Date</p>
                         <p>
-                          {format(new Date(proposal.dates.startDate!), "PPP")} to{" "}
-                          {format(new Date(proposal.dates.endDate!), "PPP")}
+                          {proposal.dates.startDate && !isNaN(new Date(proposal.dates.startDate).getTime())
+                            ? format(new Date(proposal.dates.startDate), "PPP")
+                            : "Not specified"}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-muted-foreground">End Date</p>
+                        <p>
+                          {proposal.dates.endDate && !isNaN(new Date(proposal.dates.endDate).getTime())
+                            ? format(new Date(proposal.dates.endDate), "PPP")
+                            : "Not specified"}
                         </p>
                       </div>
                     </div>
